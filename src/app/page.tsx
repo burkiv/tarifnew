@@ -42,6 +42,7 @@ export default function Home() {
   const [viewMode, setViewMode] = useState<ViewMode>('cover');
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+  const [showEditorPanel, setShowEditorPanel] = useState(true);
 
   // Data State
   const [recipes, setRecipes] = useState<Recipe[]>([]);
@@ -156,6 +157,7 @@ export default function Home() {
     }
 
     setIsEditing(true);
+    setShowEditorPanel(true);
     setViewMode('recipe');
     setSelectedRecipe(null);
   };
@@ -175,6 +177,7 @@ export default function Home() {
     setIsNewRecipe(false);
     setTempRecipeId(null);
     setIsEditing(true);
+    setShowEditorPanel(true);
   };
 
   const handleSaveRecipe = async () => {
@@ -222,7 +225,17 @@ export default function Home() {
     }
   };
 
+  // Hide editor panel (X button) - user can continue editing pages
+  const handleHideEditorPanel = () => {
+    setShowEditorPanel(false);
+  };
+
+  // Full cancel - truly cancels editing and goes back
   const handleCancelEdit = async () => {
+    if (!confirm('Değişiklikler kaydedilmedi. Çıkmak istediğinize emin misiniz?')) {
+      return;
+    }
+
     // If it's a new recipe that wasn't saved in Firebase mode, delete the temp recipe
     if (isNewRecipe && tempRecipeId && user && !isDemo) {
       try {
@@ -235,6 +248,7 @@ export default function Home() {
     setIsEditing(false);
     setIsNewRecipe(false);
     setTempRecipeId(null);
+    setShowEditorPanel(true);
 
     if (!selectedRecipe) {
       setViewMode('contents');
@@ -355,14 +369,14 @@ export default function Home() {
     );
   }
 
-  // Navbar content
+  // Navbar content - responsive for mobile
   const navbarContent = (
     <>
       <button
         onClick={() => setViewMode('contents')}
-        className={`px-6 py-2 rounded-full font-medium transition-all ${viewMode === 'contents'
-            ? 'bg-[#F4A460] text-white'
-            : 'bg-white/50 text-[#8B4513] hover:bg-white/80'
+        className={`px-4 md:px-6 py-2 rounded-full text-sm md:text-base font-medium transition-all ${viewMode === 'contents'
+          ? 'bg-[#F4A460] text-white'
+          : 'bg-white/50 text-[#8B4513] hover:bg-white/80'
           }`}
       >
         İçindekiler
@@ -370,20 +384,20 @@ export default function Home() {
 
       <button
         onClick={handleNewRecipe}
-        className="px-6 py-2 rounded-full font-medium bg-[#20B2AA] text-white hover:bg-[#008B8B] transition-colors"
+        className="px-4 md:px-6 py-2 rounded-full text-sm md:text-base font-medium bg-[#20B2AA] text-white hover:bg-[#008B8B] transition-colors"
       >
         Yeni Tarif
       </button>
 
       <button
         onClick={handleCloseBook}
-        className="px-6 py-2 rounded-full font-medium bg-[#E9967A] text-white hover:bg-[#CD853F] transition-colors"
+        className="px-4 md:px-6 py-2 rounded-full text-sm md:text-base font-medium bg-[#E9967A] text-white hover:bg-[#CD853F] transition-colors"
       >
-        Defteri Kapat
+        Kapat
       </button>
 
       {profile && (
-        <div className="absolute right-6 flex items-center gap-3">
+        <div className="hidden md:flex absolute right-6 items-center gap-3">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-full bg-[#E9967A] flex items-center justify-center text-white font-bold">
               {profile.displayName?.[0]?.toUpperCase() || 'U'}
@@ -407,7 +421,7 @@ export default function Home() {
   // Contents or Recipe view
   return (
     <>
-      {isEditing && (
+      {isEditing && showEditorPanel && (
         <RecipeEditor
           title={editTitle}
           category={editCategory}
@@ -423,13 +437,25 @@ export default function Home() {
           onImageUpload={handleImageUpload}
           onSave={handleSaveRecipe}
           onCancel={handleCancelEdit}
+          onHide={handleHideEditorPanel}
           onDelete={selectedRecipe ? handleDeleteRecipe : undefined}
           isNewRecipe={isNewRecipe}
           isSaving={isSaving}
         />
       )}
 
-      <div className={isEditing ? 'ml-72' : ''}>
+      {/* Floating button to reopen editor panel */}
+      {isEditing && !showEditorPanel && (
+        <button
+          onClick={() => setShowEditorPanel(true)}
+          className="fixed bottom-20 left-4 z-50 w-12 h-12 bg-gradient-to-r from-[#E9967A] to-[#F4A460] text-white rounded-full shadow-lg hover:shadow-xl transition-shadow flex items-center justify-center text-xl"
+          title="Ayarları Aç"
+        >
+          ⚙️
+        </button>
+      )}
+
+      <div className={isEditing && showEditorPanel ? 'md:ml-72' : ''}>
         <BookSpread
           navbarContent={navbarContent}
           leftPage={

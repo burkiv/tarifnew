@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 
 interface RecipeEditorProps {
     title: string;
@@ -17,6 +17,7 @@ interface RecipeEditorProps {
     onImageUpload: (file: File, page: 'left' | 'right') => void;
     onSave: () => void;
     onCancel: () => void;
+    onHide: () => void;
     onDelete?: () => void;
     isNewRecipe: boolean;
     isSaving: boolean;
@@ -54,6 +55,7 @@ export default function RecipeEditor({
     onImageUpload,
     onSave,
     onCancel,
+    onHide,
     onDelete,
     isNewRecipe,
     isSaving,
@@ -61,7 +63,18 @@ export default function RecipeEditor({
     const [newCategory, setNewCategory] = useState('');
     const [showNewCategory, setShowNewCategory] = useState(false);
     const [activeUploadPage, setActiveUploadPage] = useState<'left' | 'right'>('left');
+    const [isMobile, setIsMobile] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
+
+    useEffect(() => {
+        const checkMobile = () => {
+            setIsMobile(window.innerWidth < 768);
+        };
+
+        checkMobile();
+        window.addEventListener('resize', checkMobile);
+        return () => window.removeEventListener('resize', checkMobile);
+    }, []);
 
     const handleCategorySelect = (value: string) => {
         if (value === '__new__') {
@@ -93,6 +106,189 @@ export default function RecipeEditor({
         e.target.value = '';
     };
 
+    // Mobile: Full screen modal, Desktop: Side panel
+    if (isMobile) {
+        return (
+            <div className="fixed inset-0 bg-black/50 z-50 flex items-end justify-center">
+                <div className="bg-gradient-to-b from-[#FFE4E1] to-[#FFDAB9] w-full max-h-[90vh] rounded-t-3xl shadow-xl overflow-y-auto">
+                    <div className="p-4 space-y-4">
+                        {/* Header */}
+                        <div className="flex items-center justify-between">
+                            <h2 className="text-lg font-bold text-[#8B4513]">
+                                {isNewRecipe ? 'Yeni Tarif' : 'Tarifi Düzenle'}
+                            </h2>
+                            <button
+                                onClick={onHide}
+                                className="text-[#8B4513] hover:text-[#5D4037] text-2xl w-8 h-8 flex items-center justify-center"
+                            >
+                                ×
+                            </button>
+                        </div>
+
+                        {/* Title */}
+                        <div>
+                            <label className="block text-xs text-[#8B4513] mb-1">Tarif Adı</label>
+                            <input
+                                type="text"
+                                value={title}
+                                onChange={(e) => onTitleChange(e.target.value)}
+                                className="w-full px-3 py-2.5 rounded-xl border border-[#DEB887] bg-white focus:outline-none focus:ring-2 focus:ring-[#E9967A] text-[#5D4037]"
+                                placeholder="Örn: Havuçlu Kek"
+                            />
+                        </div>
+
+                        {/* Category */}
+                        <div>
+                            <label className="block text-xs text-[#8B4513] mb-1">Kategori</label>
+                            {showNewCategory ? (
+                                <div className="flex gap-2">
+                                    <input
+                                        type="text"
+                                        value={newCategory}
+                                        onChange={(e) => setNewCategory(e.target.value)}
+                                        className="flex-1 px-3 py-2.5 rounded-xl border border-[#DEB887] bg-white focus:outline-none focus:ring-2 focus:ring-[#E9967A] text-[#5D4037]"
+                                        placeholder="Yeni kategori"
+                                        onKeyDown={(e) => e.key === 'Enter' && handleNewCategorySubmit()}
+                                    />
+                                    <button
+                                        onClick={handleNewCategorySubmit}
+                                        className="px-4 py-2.5 bg-[#E9967A] text-white rounded-xl hover:bg-[#CD853F]"
+                                    >
+                                        ✓
+                                    </button>
+                                </div>
+                            ) : (
+                                <select
+                                    value={category}
+                                    onChange={(e) => handleCategorySelect(e.target.value)}
+                                    className="w-full px-3 py-2.5 rounded-xl border border-[#DEB887] bg-white focus:outline-none focus:ring-2 focus:ring-[#E9967A] text-[#5D4037]"
+                                >
+                                    <option value="">Kategori Seçin</option>
+                                    {categories.map((cat) => (
+                                        <option key={cat} value={cat}>{cat}</option>
+                                    ))}
+                                    <option value="__new__">+ Yeni Kategori</option>
+                                </select>
+                            )}
+                        </div>
+
+                        {/* Text Formatting - Compact for mobile */}
+                        <div className="flex gap-3 items-end">
+                            <div className="flex-1">
+                                <label className="block text-xs text-[#8B4513] mb-1">Font</label>
+                                <select
+                                    value={fontFamily}
+                                    onChange={(e) => onFontFamilyChange(e.target.value)}
+                                    className="w-full px-2 py-2 rounded-lg border border-[#DEB887] bg-white text-[#5D4037] text-sm"
+                                >
+                                    {FONT_FAMILIES.map((font) => (
+                                        <option key={font.value} value={font.value}>{font.label}</option>
+                                    ))}
+                                </select>
+                            </div>
+                            <div className="w-20">
+                                <label className="block text-xs text-[#8B4513] mb-1">{fontSize}px</label>
+                                <input
+                                    type="range"
+                                    min="12"
+                                    max="24"
+                                    value={fontSize}
+                                    onChange={(e) => onFontSizeChange(parseInt(e.target.value))}
+                                    className="w-full"
+                                />
+                            </div>
+                        </div>
+
+                        {/* Color */}
+                        <div>
+                            <label className="block text-xs text-[#8B4513] mb-1">Renk</label>
+                            <div className="flex gap-2 flex-wrap">
+                                {FONT_COLORS.map((color) => (
+                                    <button
+                                        key={color.value}
+                                        onClick={() => onFontColorChange(color.value)}
+                                        className={`w-8 h-8 rounded-full border-2 transition-all ${fontColor === color.value
+                                            ? 'border-[#E9967A] scale-110'
+                                            : 'border-transparent'
+                                            }`}
+                                        style={{ backgroundColor: color.value }}
+                                    />
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Image Upload */}
+                        <div className="space-y-2">
+                            <div className="flex gap-2">
+                                <button
+                                    onClick={() => setActiveUploadPage('left')}
+                                    className={`flex-1 py-2 rounded-lg text-sm font-medium ${activeUploadPage === 'left'
+                                        ? 'bg-[#E9967A] text-white'
+                                        : 'bg-white/50 text-[#8B4513]'
+                                        }`}
+                                >
+                                    Sol Sayfa
+                                </button>
+                                <button
+                                    onClick={() => setActiveUploadPage('right')}
+                                    className={`flex-1 py-2 rounded-lg text-sm font-medium ${activeUploadPage === 'right'
+                                        ? 'bg-[#E9967A] text-white'
+                                        : 'bg-white/50 text-[#8B4513]'
+                                        }`}
+                                >
+                                    Sağ Sayfa
+                                </button>
+                            </div>
+
+                            <button
+                                onClick={() => fileInputRef.current?.click()}
+                                className="w-full py-3 border-2 border-dashed border-[#DEB887] rounded-xl text-center text-[#8B4513] hover:border-[#E9967A]"
+                            >
+                                📷 Görsel Yükle
+                            </button>
+
+                            <input
+                                ref={fileInputRef}
+                                type="file"
+                                accept="image/*"
+                                multiple
+                                onChange={handleFileSelect}
+                                className="hidden"
+                            />
+                        </div>
+
+                        {/* Actions */}
+                        <div className="flex gap-2 pt-2">
+                            <button
+                                onClick={onSave}
+                                disabled={isSaving || !title.trim()}
+                                className="flex-1 py-3 bg-gradient-to-r from-[#E9967A] to-[#F4A460] text-white font-semibold rounded-xl disabled:opacity-50"
+                            >
+                                {isSaving ? 'Kaydediliyor...' : 'Kaydet'}
+                            </button>
+                            <button
+                                onClick={onCancel}
+                                className="px-6 py-3 bg-white/50 text-[#8B4513] font-medium rounded-xl"
+                            >
+                                İptal
+                            </button>
+                        </div>
+
+                        {!isNewRecipe && onDelete && (
+                            <button
+                                onClick={onDelete}
+                                className="w-full py-3 bg-red-100 text-red-600 font-medium rounded-xl"
+                            >
+                                Tarifi Sil
+                            </button>
+                        )}
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    // Desktop: Side panel
     return (
         <div className="fixed left-0 top-0 bottom-0 w-72 bg-gradient-to-b from-[#FFE4E1] to-[#FFDAB9] shadow-xl z-40 overflow-y-auto">
             <div className="p-5 space-y-5">
@@ -102,7 +298,7 @@ export default function RecipeEditor({
                         {isNewRecipe ? 'Yeni Tarif' : 'Tarifi Düzenle'}
                     </h2>
                     <button
-                        onClick={onCancel}
+                        onClick={onHide}
                         className="text-[#8B4513] hover:text-[#5D4037] text-2xl"
                     >
                         ×

@@ -22,7 +22,7 @@ export default function BookSpread({
 
     useEffect(() => {
         const checkMobile = () => {
-            setIsMobile(window.innerWidth < 1024);
+            setIsMobile(window.innerWidth < 768);
         };
 
         checkMobile();
@@ -32,68 +32,70 @@ export default function BookSpread({
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-[#FFF8E7] to-[#FFE4C4] flex flex-col">
-            {/* Navbar */}
+            {/* Navbar - Compact on mobile */}
             {showNavbar && (
-                <nav className="flex items-center justify-center gap-4 py-4 px-6">
+                <nav className={`shrink-0 ${isMobile ? 'flex flex-wrap items-center justify-center gap-2 py-2 px-2' : 'flex items-center justify-center gap-4 py-4 px-6'}`}>
                     {navbarContent}
                 </nav>
             )}
 
-            {/* Book Container */}
-            <div className="flex-1 flex items-center justify-center p-4">
-                <div className="relative w-full max-w-7xl">
-                    {/* Book shadow */}
-                    <div className="absolute inset-0 bg-black/10 rounded-lg blur-xl translate-y-4" />
+            {/* Mobile toggle buttons - Compact */}
+            {isMobile && (
+                <div className="shrink-0 flex justify-center gap-2 py-1.5 bg-white/30">
+                    <button
+                        onClick={() => setActivePage('left')}
+                        className={`px-4 py-1.5 rounded-full text-xs font-medium transition-all ${activePage === 'left'
+                                ? 'bg-[#E9967A] text-white'
+                                : 'bg-white/50 text-[#8B4513]'
+                            }`}
+                    >
+                        Sol Sayfa
+                    </button>
+                    <button
+                        onClick={() => setActivePage('right')}
+                        className={`px-4 py-1.5 rounded-full text-xs font-medium transition-all ${activePage === 'right'
+                                ? 'bg-[#E9967A] text-white'
+                                : 'bg-white/50 text-[#8B4513]'
+                            }`}
+                    >
+                        Sağ Sayfa
+                    </button>
+                </div>
+            )}
 
-                    {/* Mobile toggle buttons */}
-                    {isMobile && (
-                        <div className="flex justify-center gap-4 mb-4">
-                            <button
-                                onClick={() => setActivePage('left')}
-                                className={`px-6 py-2 rounded-full font-medium transition-all ${activePage === 'left'
-                                    ? 'bg-[#E9967A] text-white'
-                                    : 'bg-white/50 text-[#8B4513]'
-                                    }`}
-                            >
-                                Sol Sayfa
-                            </button>
-                            <button
-                                onClick={() => setActivePage('right')}
-                                className={`px-6 py-2 rounded-full font-medium transition-all ${activePage === 'right'
-                                    ? 'bg-[#E9967A] text-white'
-                                    : 'bg-white/50 text-[#8B4513]'
-                                    }`}
-                            >
-                                Sağ Sayfa
-                            </button>
-                        </div>
+            {/* Book Container - flex-1 fills remaining space */}
+            <div className={`flex-1 flex items-stretch justify-center ${isMobile ? 'p-1' : 'p-4 items-center'}`}>
+                <div className={`relative w-full ${isMobile ? 'h-full' : 'max-w-7xl'}`}>
+                    {/* Book shadow - only on desktop */}
+                    {!isMobile && (
+                        <div className="absolute inset-0 bg-black/10 rounded-lg blur-xl translate-y-4" />
                     )}
 
                     {/* Book spread */}
-                    <div className={`relative bg-white rounded-lg shadow-2xl overflow-hidden ${isMobile ? '' : 'flex'}`}>
+                    <div className={`relative bg-white rounded-lg shadow-2xl overflow-hidden h-full ${isMobile ? '' : 'flex'}`}>
                         {/* Spiral binding */}
-                        <div className="absolute left-0 top-0 bottom-0 w-10 bg-gradient-to-r from-[#D2691E] to-[#8B4513] z-20 flex flex-col justify-evenly py-6">
-                            {Array.from({ length: 20 }).map((_, i) => (
+                        <div className={`absolute left-0 top-0 bottom-0 ${isMobile ? 'w-6' : 'w-10'} bg-gradient-to-r from-[#D2691E] to-[#8B4513] z-20 flex flex-col justify-evenly ${isMobile ? 'py-2' : 'py-6'}`}>
+                            {Array.from({ length: isMobile ? 18 : 20 }).map((_, i) => (
                                 <div
                                     key={i}
-                                    className="w-4 h-4 mx-auto rounded-full bg-[#2C1810] shadow-inner"
+                                    className={`${isMobile ? 'w-2.5 h-2.5' : 'w-4 h-4'} mx-auto rounded-full bg-[#2C1810] shadow-inner`}
                                 />
                             ))}
                         </div>
 
                         {/* Left page */}
                         <div
-                            className={`relative bg-[#FFFAF0] ${isMobile
-                                ? activePage === 'left' ? 'block' : 'hidden'
-                                : 'w-1/2 border-r border-[#DEB887]/30'
+                            className={`relative bg-[#FFFAF0] h-full ${isMobile
+                                    ? activePage === 'left' ? 'block' : 'hidden'
+                                    : 'w-1/2 border-r border-[#DEB887]/30'
                                 }`}
-                            style={{ minHeight: isMobile ? '75vh' : '85vh' }}
+                            style={{ minHeight: isMobile ? 'calc(100vh - 120px)' : '85vh' }}
                         >
                             {/* Yellow stripe */}
-                            <div className="absolute left-12 top-0 bottom-0 w-0.5 bg-[#FFD700]/50" />
+                            <div className={`absolute ${isMobile ? 'left-8' : 'left-12'} top-0 bottom-0 w-0.5 bg-[#FFD700]/50`} />
 
                             {/* Page content */}
-                            <div className="pl-16 pr-6 py-8 h-full">
+                            <div className={`h-full overflow-y-auto ${isMobile ? 'pl-10 pr-3 py-3' : 'pl-16 pr-6 py-8'}`}>
                                 {leftPage}
                             </div>
 
@@ -108,14 +110,14 @@ export default function BookSpread({
 
                         {/* Right page */}
                         <div
-                            className={`relative bg-[#FFFAF0] ${isMobile
-                                ? activePage === 'right' ? 'block' : 'hidden'
-                                : 'w-1/2'
+                            className={`relative bg-[#FFFAF0] h-full ${isMobile
+                                    ? activePage === 'right' ? 'block' : 'hidden'
+                                    : 'w-1/2'
                                 }`}
-                            style={{ minHeight: isMobile ? '75vh' : '85vh' }}
+                            style={{ minHeight: isMobile ? 'calc(100vh - 120px)' : '85vh' }}
                         >
                             {/* Page content */}
-                            <div className="px-6 py-8 h-full">
+                            <div className={`h-full overflow-y-auto ${isMobile ? 'px-3 py-3' : 'px-6 py-8'}`}>
                                 {rightPage}
                             </div>
 
