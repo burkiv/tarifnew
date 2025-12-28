@@ -1,26 +1,92 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #FFF8E7;
+  --foreground: #5D4037;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  height: 100%;
+  overflow-x: hidden;
 }
 
 body {
-  background: var(--background);
+  background: linear-gradient(135deg, #FFF8E7 0%, #FFE4C4 100%);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: 'Georgia', serif;
+  min-height: 100vh;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #FFE4C4;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #DEB887;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #CD853F;
+}
+
+/* Book page texture */
+.book-page {
+  background: 
+    linear-gradient(90deg, transparent 0%, rgba(222, 184, 135, 0.1) 50%, transparent 100%),
+    linear-gradient(#FFFAF0, #FFFAF0);
+  background-size: 100% 100%;
+}
+
+/* Text selection */
+::selection {
+  background: #E9967A;
+  color: white;
+}
+
+/* Smooth transitions */
+.transition-book {
+  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Paper texture overlay */
+.paper-texture::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+  opacity: 0.03;
+  pointer-events: none;
+}
+
+/* Animation for page transitions */
+@keyframes pageFlip {
+  0% {
+    transform: rotateY(0deg);
+  }
+  100% {
+    transform: rotateY(-180deg);
+  }
+}
+
+.animate-page-flip {
+  animation: pageFlip 0.6s ease-in-out forwards;
+  transform-origin: left center;
+  transform-style: preserve-3d;
 }
